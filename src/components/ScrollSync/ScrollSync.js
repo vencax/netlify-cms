@@ -65,8 +65,10 @@ export default class ScrollSync extends Component {
         this.removeEvents(pane);
         /* Calculate the actual pane height */
         const paneHeight = pane.scrollHeight - clientHeight;
+        const newScrollTop = paneHeight * scrollTop / (scrollHeight - clientHeight);
+        console.log(scrolledPane, scrollHeight, clientHeight, pane, pane.scrollHeight, pane.clientHeight, paneHeight);
         /* Adjust the scrollTop position of it accordingly */
-        pane.scrollTop = paneHeight * scrollTop / (scrollHeight - clientHeight);
+        pane.scrollTop = newScrollTop;
         /* Re-attach event listeners after we're done scrolling */
         window.requestAnimationFrame(() => {
           this.addEvents(pane);
