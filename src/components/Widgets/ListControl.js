@@ -30,7 +30,7 @@ export default class ListControl extends Component {
     onChange: PropTypes.func.isRequired,
     value: PropTypes.node,
     field: PropTypes.node,
-    forID: PropTypes.string.isRequired,
+    forID: PropTypes.string,
     getAsset: PropTypes.func.isRequired,
     onAddAsset: PropTypes.func.isRequired,
     onRemoveAsset: PropTypes.func.isRequired,
@@ -170,12 +170,14 @@ export default class ListControl extends Component {
   }
 
   renderListControl() {
-    const { value, forID } = this.props;
+    const { value, forID, field } = this.props;
+    const listLabel = field.get('label');
+
     return (<div id={forID}>
       {value && value.map((item, index) => this.renderItem(item, index))}
       <button className={styles.addButton} onClick={this.handleAdd}>
         <FontIcon value="add" className={styles.addButtonIcon} />
-        <span className={styles.addButtonText}>new</span>
+        <span className={styles.addButtonText}>new {listLabel}</span>
       </button>
     </div>);
   }

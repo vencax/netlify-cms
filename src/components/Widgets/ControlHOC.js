@@ -8,7 +8,12 @@ class ControlHOC extends Component {
   static propTypes = {
     controlComponent: PropTypes.func.isRequired,
     field: ImmutablePropTypes.map.isRequired,
-    value: PropTypes.node,
+    value: PropTypes.oneOfType([
+      PropTypes.node,
+      PropTypes.object,
+      PropTypes.string,
+      PropTypes.bool,
+    ]),
     metadata: ImmutablePropTypes.map,
     onChange: PropTypes.func.isRequired,
     onValidate: PropTypes.func.isRequired,

@@ -2,6 +2,7 @@ import React, { PropTypes } from 'react';
 import { truncateMiddle } from '../../lib/textHelper';
 import { Loader } from '../UI';
 import AssetProxy, { createAssetProxy } from '../../valueObjects/AssetProxy';
+import styles from './FileControl.css';
 
 const MAX_DISPLAY_LENGTH = 50;
 
@@ -52,7 +53,7 @@ export default class FileControl extends React.Component {
     this.props.onRemoveAsset(this.props.value);
     if (file) {
       this.setState({ processing: true });
-      this.promise = createAssetProxy(file.name, file, false, this.props.field.get('private', false))
+      this.promise = createAssetProxy(file.name, file, false, this.props.field)
       .then((assetProxy) => {
         this.setState({ processing: false });
         this.props.onAddAsset(assetProxy);
@@ -77,8 +78,8 @@ export default class FileControl extends React.Component {
     const fileName = this.renderFileName();
     if (processing) {
       return (
-        <div style={styles.imageUpload}>
-          <span style={styles.message}>
+        <div className={styles.imageUpload}>
+          <span className={styles.message}>
             <Loader active />
           </span>
         </div>
@@ -86,7 +87,7 @@ export default class FileControl extends React.Component {
     }
     return (
       <div
-        style={styles.imageUpload}
+        className={styles.imageUpload}
         onDragEnter={this.handleDragEnter}
         onDragOver={this.handleDragOver}
         onDrop={this.handleChange}
@@ -97,31 +98,13 @@ export default class FileControl extends React.Component {
         <input
           type="file"
           onChange={this.handleChange}
-          style={styles.input}
+          className={styles.input}
           ref={this.handleFileInputRef}
         />
       </div>
     );
   }
 }
-
-const styles = {
-  input: {
-    display: 'none',
-  },
-  message: {
-    padding: '20px',
-    display: 'block',
-    fontSize: '12px',
-  },
-  imageUpload: {
-    backgroundColor: '#fff',
-    textAlign: 'center',
-    color: '#999',
-    border: '1px dashed #eee',
-    cursor: 'pointer',
-  },
-};
 
 FileControl.propTypes = {
   onAddAsset: PropTypes.func.isRequired,

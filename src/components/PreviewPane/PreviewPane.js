@@ -1,7 +1,7 @@
 import React, { PropTypes } from 'react';
-import ReactDOM from 'react-dom';
 import { List, Map } from 'immutable';
 import ImmutablePropTypes from 'react-immutable-proptypes';
+import Frame from 'react-frame-component';
 import { ScrollSyncPane } from '../ScrollSync';
 import registry from '../../lib/registry';
 import { resolveWidget } from '../Widgets';
@@ -12,19 +12,18 @@ import styles from './PreviewPane.css';
 
 export default class PreviewPane extends React.Component {
 
-  componentDidUpdate() {
-    this.renderPreview();
-  }
-
   getWidget = (field, value, props) => {
-    const { fieldsMetaData, getAsset } = props;
+    const { fieldsMetaData, getAsset, entry } = props;
     const widget = resolveWidget(field.get('widget'));
-    return React.createElement(widget.preview, {
+
+    return !widget.preview ? null : React.createElement(widget.preview, {
       field,
       key: field.get('name'),
       value: value && Map.isMap(value) ? value.get(field.get('name')) : value,
       metadata: fieldsMetaData && fieldsMetaData.get(field.get('name')),
       getAsset,
+      entry,
+      fieldsMetaData,
     });
   };
 
@@ -41,10 +40,23 @@ export default class PreviewPane extends React.Component {
     if (authorField) this.inferedFields[authorField] = INFERABLE_FIELDS.author;
   }
 
-  widgetFor = (name) => {
-    const { fields, entry } = this.props;
-    const field = fields.find(f => f.get('name') === name);
-    let value = entry.getIn(['data', field.get('name')]);
+  /**
+   * Returns the widget component for a named field, and makes recursive calls
+   * to retrieve components for nested and deeply nested fields, which occur in
+   * object and list type fields. Used internally to retrieve widgets, and also
+   * exposed for use in custom preview templates.
+   */
+  widgetFor = (name, fields = this.props.fields, values = this.props.entry.get('data')) => {
+    // We retrieve the field by name so that this function can also be used in
+    // custom preview templates, where the field object can't be passed in.
+    let field = fields && fields.find(f => f.get('name') === name);
+    let value = values && values.get(field.get('name'));
+    let nestedFields = field.get('fields');
+
+    if (nestedFields) {
+      field = field.set('fields', this.getNestedWidgets(nestedFields, value));
+    }
+
     const labelledWidgets = ['string', 'text', 'number'];
     if (Object.keys(this.inferedFields).indexOf(name) !== -1) {
       value = this.inferedFields[name].defaultPreview(value);
@@ -55,6 +67,31 @@ export default class PreviewPane extends React.Component {
     return value ? this.getWidget(field, value, this.props) : null;
   };
 
+  /**
+   * Retrieves widgets for nested fields (children of object/list fields)
+   */
+  getNestedWidgets = (fields, values) => {
+    // Fields nested within a list field will be paired with a List of value Maps.
+    if (List.isList(values)) {
+      return values.map(value => this.widgetsForNestedFields(fields, value));
+    }
+    // Fields nested within an object field will be paired with a single Map of values.
+    return this.widgetsForNestedFields(fields, values);
+  };
+
+  /**
+   * Use widgetFor as a mapping function for recursive widget retrieval
+   */
+  widgetsForNestedFields = (fields, values) => {
+    return fields.map(field => this.widgetFor(field.get('name'), fields, values));
+  };
+
+  /**
+   * This function exists entirely to expose nested widgets for object and list
+   * fields to custom preview templates.
+   *
+   * TODO: see if widgetFor can now provide this functionality for preview templates
+   */
   widgetsFor = (name) => {
     const { fields, entry } = this.props;
     const field = fields.find(f => f.get('name') === name);
@@ -66,7 +103,7 @@ export default class PreviewPane extends React.Component {
         const widgets = nestedFields && Map(nestedFields.map((f, i) => [f.get('name'), <div key={i}>{this.getWidget(f, val, this.props)}</div>]));
         return Map({ data: val, widgets });
       });
-    }
+    };
 
     return Map({
       data: value,
@@ -74,29 +111,13 @@ export default class PreviewPane extends React.Component {
     });
   };
 
-  handleIframeRef = (ref) => {
-    if (ref) {
-      registry.getPreviewStyles().forEach((style) => {
-        const linkEl = document.createElement('link');
-        linkEl.setAttribute('rel', 'stylesheet');
-        linkEl.setAttribute('href', style);
-        ref.contentDocument.head.appendChild(linkEl);
-      });
-
-      const base = document.createElement('base');
-      base.setAttribute('target', '_blank');
-      ref.contentDocument.head.appendChild(base);
-
-      this.previewEl = document.createElement('div');
-      this.iframeBody = ref.contentDocument.body;
-      this.iframeBody.appendChild(this.previewEl);
-      this.renderPreview();
-    }
-  };
-
-  renderPreview() {
+  render() {
     const { entry, collection } = this.props;
-    if (!entry || !entry.get('data')) return;
+
+    if (!entry || !entry.get('data')) {
+      return null;
+    }
+
     const component = registry.getPreviewTemplate(selectTemplateName(collection, entry.get('slug'))) || Preview;
 
     this.inferFields();
@@ -107,22 +128,35 @@ export default class PreviewPane extends React.Component {
       widgetsFor: this.widgetsFor,
     };
 
-    // We need to use this API in order to pass context to the iframe
-    ReactDOM.unstable_renderSubtreeIntoContainer(
-      this,
-      <ScrollSyncPane attachTo={this.iframeBody}>
-        {React.createElement(component, previewProps)}
-      </ScrollSyncPane>
-      , this.previewEl);
-  }
+    const styleEls = registry.getPreviewStyles()
+       .map((style, i) => <link key={i} href={style} type="text/css" rel="stylesheet" />);
 
-  render() {
-    const { collection } = this.props;
     if (!collection) {
-      return null;
+      return <Frame className={styles.frame} head={styleEls} />;
     }
 
-    return <iframe className={styles.frame} ref={this.handleIframeRef} />;
+    // We need to create a lightweight component here so that we can
+    // access the context within the Frame. This allows us to attach
+    // the ScrollSyncPane to the body.
+    const PreviewContent = (props, { document: iFrameDocument }) => (
+      <ScrollSyncPane attachTo={iFrameDocument.scrollingElement}>
+        {React.createElement(component, previewProps)}
+      </ScrollSyncPane>);
+
+    PreviewContent.contextTypes = {
+      document: PropTypes.any,
+    };
+
+    return (<Frame
+      className={styles.frame}
+      head={styleEls}
+      initialContent={`
+<!DOCTYPE html>
+<html>
+  <head><base target="_blank"/></head>
+  <body><div></div></body>
+</html>`}
+    ><PreviewContent /></Frame>);
   }
 }
 

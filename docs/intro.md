@@ -25,11 +25,11 @@ The admin interface is a single-page app with the entry point stored in a static
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Content Manager</title>
   
-  <link rel="stylesheet" href="https://unpkg.com/netlify-cms@^0.3/dist/cms.css" />
+  <link rel="stylesheet" href="https://unpkg.com/netlify-cms@~0.4/dist/cms.css" />
   
 </head>
 <body>
-  <script src="https://unpkg.com/netlify-cms@^0.3/dist/cms.js"></script>
+  <script src="https://unpkg.com/netlify-cms@~0.4/dist/cms.js"></script>
 </body>
 </html>
 ```
@@ -87,19 +87,7 @@ You point to where the files are stored, and specify the fields that define them
 
 ### Widgets
 
-Widgets define the data type and interface for entry fields. Netlify CMS comes with several built-in widgets, including:
-
-Widget | UI | Data Type
---- | --- | ---
-`string` | text input | string
-`text` | text area input | plain text, multiline input
-`number` | text input with `+` and `-` buttons | number
-`markdown` | rich text editor with raw option | markdown-formatted string
-`datetime` | date picker widget | ISO date string
-`image` | file picker widget with drag-and-drop | file path saved as string, image uploaded to media folder
-`hidden` | No UI | Hidden element, typically only useful with a `default` attribute
-
-We’re always adding new widgets, and you can also create your own.
+Widgets define the data type and interface for entry fields. Netlify CMS comes with several built-in [widgets](/docs/widgets).
 
 ## Customization
 
