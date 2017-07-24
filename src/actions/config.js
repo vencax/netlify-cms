@@ -2,6 +2,7 @@ import yaml from "js-yaml";
 import { set, defaultsDeep, get } from "lodash";
 import { authenticateUser } from "../actions/auth";
 import * as publishModes from "../constants/publishModes";
+import polyglot from '../i18n';
 
 export const CONFIG_REQUEST = "CONFIG_REQUEST";
 export const CONFIG_SUCCESS = "CONFIG_SUCCESS";
@@ -83,25 +84,17 @@ export function configDidLoad(config) {
   };
 }
 
-const DEFAULT_I18N_URL = 'https://raw.githubusercontent.com/netlify/netlify-cms/master/src';
-
 function loadTranslations(config) {
-  const URL_BASE = config.default_i18n_urlbase || DEFAULT_I18N_URL;
-  const translationsURL = `${URL_BASE}/i18n/${config.lang}.json`;
-  return fetch(translationsURL)
-  .then((res) => {
-    if (res.status === 404) {
-      // try fallback en
-      console.error(`Translations for lang: ${config.lang} not exist, defaulting to english`);
-      config.lang = 'en';
-      return fetch(`${URL_BASE}/i18n/en.json`).then(res => res.json());
+  const lang = config.lang || 'en';
+  if (lang !== 'en') {
+    try {
+      const translations = require(`../i18n/${lang}.json`);
+      polyglot.replace(translations);
+    } catch (err) {
+      console.warn(`Could not load ${lang} translation. Probably missing. Leaving with english.`)
     }
-    return res.json();
-  })
-  .then(transls => {
-    polyglot.replace(transls);
-    return config;
-  });
+  }
+  return config;
 }
 
 export function loadConfig() {

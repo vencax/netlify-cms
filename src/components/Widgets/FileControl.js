@@ -3,6 +3,7 @@ import { truncateMiddle } from '../../lib/textHelper';
 import { Loader } from '../UI';
 import AssetProxy, { createAssetProxy } from '../../valueObjects/AssetProxy';
 import styles from './FileControl.css';
+import polyglot from '../../i18n';
 
 const MAX_DISPLAY_LENGTH = 50;
 
