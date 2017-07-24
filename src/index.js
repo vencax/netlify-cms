@@ -5,7 +5,6 @@ import 'file?name=index.html!../example/index.html';
 import 'react-toolbox/lib/commons.scss';
 import Root from './root';
 import registry from './lib/registry';
-import { __ } from './i18n';
 import './index.css';
 
 if (process.env.NODE_ENV !== 'production') {
@@ -48,11 +47,11 @@ const buildtInPlugins = [{
   toPreview: data => <img src={data.image} alt={data.alt} />,
   pattern: /^!\[([^\]]+)]\(([^)]+)\)$/,
   fields: [{
-    label: __('Image'),
+    label: polyglot.t('image'),
     name: 'image',
     widget: 'image',
   }, {
-    label: __('Alt Text'),
+    label: polyglot.t('alttext'),
     name: 'alt',
   }],
 }];
