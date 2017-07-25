@@ -97,7 +97,7 @@ export default class ImageControl extends React.Component {
         onDragOver={this.handleDragOver}
         onDrop={this.handleChange}
       >
-        <span style={styles.message} onClick={this.handleClick}>
+        <span className={styles.message} onClick={this.handleClick}>
           {imageName ? imageName : polyglot.t('imagecontrol_tip')}
         </span>
         <input

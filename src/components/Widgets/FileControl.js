@@ -93,7 +93,7 @@ export default class FileControl extends React.Component {
         onDragOver={this.handleDragOver}
         onDrop={this.handleChange}
       >
-        <span style={styles.message} onClick={this.handleClick}>
+        <span className={styles.message} onClick={this.handleClick}>
           {fileName ? fileName : polyglot.t('filecontrol_tip')}
         </span>
         <input
