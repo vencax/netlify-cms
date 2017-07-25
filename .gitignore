@@ -1,4 +1,4 @@
-dist/
+dist/index.html
 bin/
 node_modules/
 npm-debug.log
@@ -6,3 +6,4 @@ npm-debug.log
 .tern-project
 yarn-error.log
 .vscode/
+package-lock.json
