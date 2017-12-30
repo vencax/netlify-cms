@@ -2,7 +2,8 @@ import React, { PropTypes } from 'react';
 import { truncateMiddle } from '../../lib/textHelper';
 import { Loader } from '../UI';
 import AssetProxy, { createAssetProxy } from '../../valueObjects/AssetProxy';
-import { __ } from '../../i18n';
+import styles from './FileControl.css';
+import polyglot from '../../i18n';
 
 const MAX_DISPLAY_LENGTH = 50;
 
@@ -57,7 +58,7 @@ export default class ImageControl extends React.Component {
     this.props.onRemoveAsset(this.props.value);
     if (file) {
       this.setState({ processing: true });
-      this.promise = createAssetProxy(file.name, file)
+      this.promise = createAssetProxy(file.name, file, false, this.props.field)
       .then((assetProxy) => {
         this.setState({ processing: false });
         this.props.onAddAsset(assetProxy);
@@ -82,8 +83,8 @@ export default class ImageControl extends React.Component {
     const imageName = this.renderImageName();
     if (processing) {
       return (
-        <div style={styles.imageUpload}>
-          <span style={styles.message}>
+        <div className={styles.imageUpload}>
+          <span className={styles.message}>
             <Loader active />
           </span>
         </div>
@@ -91,43 +92,25 @@ export default class ImageControl extends React.Component {
     }
     return (
       <div
-        style={styles.imageUpload}
+        className={styles.imageUpload}
         onDragEnter={this.handleDragEnter}
         onDragOver={this.handleDragOver}
         onDrop={this.handleChange}
       >
-        <span style={styles.message} onClick={this.handleClick}>
-          {imageName ? imageName : __('Tip: Click here to upload an image from your file browser, or drag an image directly into this box from your desktop')}
+        <span className={styles.message} onClick={this.handleClick}>
+          {imageName ? imageName : polyglot.t('imagecontrol_tip')}
         </span>
         <input
           type="file"
           accept="image/*"
           onChange={this.handleChange}
-          style={styles.input}
+          className={styles.input}
           ref={this.handleFileInputRef}
         />
       </div>
     );
   }
 }
-
-const styles = {
-  input: {
-    display: 'none',
-  },
-  message: {
-    padding: '20px',
-    display: 'block',
-    fontSize: '12px',
-  },
-  imageUpload: {
-    backgroundColor: '#fff',
-    textAlign: 'center',
-    color: '#999',
-    border: '1px dashed #eee',
-    cursor: 'pointer',
-  },
-};
 
 ImageControl.propTypes = {
   onAddAsset: PropTypes.func.isRequired,

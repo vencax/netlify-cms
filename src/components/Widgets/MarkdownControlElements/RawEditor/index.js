@@ -3,7 +3,7 @@ import MarkupIt from 'markup-it';
 import markdownSyntax from 'markup-it/syntaxes/markdown';
 import htmlSyntax from 'markup-it/syntaxes/html';
 import CaretPosition from 'textarea-caret-position';
-import TextareaAutosize from 'react-textarea-autosize-inputref';
+import TextareaAutosize from 'react-textarea-autosize';
 import registry from '../../../../lib/registry';
 import { createAssetProxy } from '../../../../valueObjects/AssetProxy';
 import Toolbar from '../Toolbar/Toolbar';
@@ -320,7 +320,11 @@ export default class RawEditor extends React.Component {
       onDragOver={this.handleDragOver}
       onDrop={this.handleDrop}
     >
-      <Sticky className={styles.editorControlBar} fillContainerWidth>
+      <Sticky
+        className={styles.editorControlBar}
+        classNameActive={styles.editorControlBarSticky}
+        fillContainerWidth
+      >
         <Toolbar
           selectionPosition={selectionPosition}
           onH1={this.handleHeader('#')}
@@ -338,6 +342,7 @@ export default class RawEditor extends React.Component {
         />
       </Sticky>
       <TextareaAutosize
+        className={styles.textarea}
         inputRef={this.handleRef}
         className={styles.textarea}
         value={this.props.value || ''}

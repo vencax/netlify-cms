@@ -1,12 +1,12 @@
 import React from 'react';
 import { render } from 'react-dom';
 import { AppContainer } from 'react-hot-loader';
-import 'file?name=index.html!../example/index.html';
+import 'file-loader?name=index.html!../example/index.html';
 import 'react-toolbox/lib/commons.scss';
 import Root from './root';
 import registry from './lib/registry';
-import { __ } from './i18n';
 import './index.css';
+import polyglot from './i18n';
 
 if (process.env.NODE_ENV !== 'production') {
   require('./utils.css'); // eslint-disable-line
@@ -26,15 +26,8 @@ render((
   </AppContainer>
 ), el);
 
-if (process.env.NODE_ENV !== 'production' && module.hot) {
-  module.hot.accept('./root', () => {
-    const NextRoot = require('./root').default; // eslint-disable-line
-    render((
-      <AppContainer>
-        <NextRoot />
-      </AppContainer>
-    ), el);
-  });
+if (module.hot) {
+  module.hot.accept('./root', () => { render(Root); });
 }
 
 const buildtInPlugins = [{
@@ -48,11 +41,11 @@ const buildtInPlugins = [{
   toPreview: data => <img src={data.image} alt={data.alt} />,
   pattern: /^!\[([^\]]+)]\(([^)]+)\)$/,
   fields: [{
-    label: __('Image'),
+    label: polyglot.t('image'),
     name: 'image',
     widget: 'image',
   }, {
-    label: __('Alt Text'),
+    label: polyglot.t('alttext'),
     name: 'alt',
   }],
 }];

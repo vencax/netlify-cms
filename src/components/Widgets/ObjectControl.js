@@ -10,14 +10,21 @@ export default class ObjectControl extends Component {
     onAddAsset: PropTypes.func.isRequired,
     onRemoveAsset: PropTypes.func.isRequired,
     getAsset: PropTypes.func.isRequired,
-    value: PropTypes.node,
+    value: PropTypes.oneOfType([
+      PropTypes.node,
+      PropTypes.object,
+      PropTypes.bool,
+    ]),
     field: PropTypes.object,
-    forID: PropTypes.string.isRequired,
+    forID: PropTypes.string,
     className: PropTypes.string,
   };
 
   controlFor(field) {
     const { onAddAsset, onRemoveAsset, getAsset, value, onChange } = this.props;
+    if (field.get('widget') === 'hidden') {
+      return null;
+    }
     const widget = resolveWidget(field.get('widget') || 'string');
     const fieldValue = value && Map.isMap(value) ? value.get(field.get('name')) : value;
 
@@ -35,6 +42,7 @@ export default class ObjectControl extends Component {
             onAddAsset,
             onRemoveAsset,
             getAsset,
+            forID: field.get('name'),
           })
         }
       </div>

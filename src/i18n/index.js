@@ -1,4 +1,7 @@
 
-exports.__ = function(str) {
-  return window.langStrings ? window.langStrings[str] : str
-}
+import Polyglot from 'node-polyglot';
+import english from './en.json';
+
+const instance = new Polyglot({phrases: english});
+
+export default instance;
