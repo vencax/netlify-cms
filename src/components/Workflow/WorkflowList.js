@@ -23,7 +23,7 @@ const getColumnClassName = columnName => {
 const getColumnHeaderText = columnName => {
   switch (columnName) {
     case 'draft': return i18n.t('Drafts');
-    case 'pending_review': return i18n.t('In Review');
+    case 'pending_review': return i18n.t('In review');
     case 'pending_publish': return i18n.t('Ready');
   }
 }
