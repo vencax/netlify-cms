@@ -1,23 +1,22 @@
-import { resolvePath } from '../lib/pathHelper';
-import { currentBackend } from "../backends/backend";
-import { getIntegrationProvider } from '../integrations';
-import { selectIntegration } from '../reducers';
+import { resolvePath } from 'Lib/pathHelper';
+import { currentBackend } from "Backends/backend";
+import { getIntegrationProvider } from 'Integrations';
+import { selectIntegration } from 'Reducers';
 
 let store;
 export const setStore = (storeObj) => {
   store = storeObj;
 };
 
-export default function AssetProxy(value, fileObj, uploaded = false, field = null) {
+export default function AssetProxy(value, fileObj, uploaded = false, asset) {
   const config = store.getState().config;
-  const media_folder = (field && field.has('media_folder')) ? field.get('media_folder') : config.get('media_folder');
-  const public_folder = (field && field.has('public_folder')) ? field.get('public_folder') : '/' + media_folder;
   this.value = value;
   this.fileObj = fileObj;
   this.uploaded = uploaded;
   this.sha = null;
-  this.path = media_folder && !uploaded ? resolvePath(value, media_folder) : value;
-  this.public_path = !uploaded ? resolvePath(value, public_folder) : value;
+  this.path = config.get('media_folder') && !uploaded ? resolvePath(value, config.get('media_folder')) : value;
+  this.public_path = !uploaded ? resolvePath(value, config.get('public_folder')) : value;
+  this.asset = asset;
 }
 
 AssetProxy.prototype.toString = function () {
@@ -41,21 +40,20 @@ AssetProxy.prototype.toBase64 = function () {
   });
 };
 
-export function createAssetProxy(value, fileObj, uploaded = false, field = null) {
+export function createAssetProxy(value, fileObj, uploaded = false, privateUpload = false) {
   const state = store.getState();
-  const privateUpload = field ? field.get('private', false) : false;
   const integration = selectIntegration(state, null, 'assetStore');
   if (integration && !uploaded) {
     const provider = integration && getIntegrationProvider(state.integrations, currentBackend(state.config).getToken, integration);
     return provider.upload(fileObj, privateUpload).then(
       response => (
-        new AssetProxy(response.assetURL.replace(/^(https?):/, ''), null, true, field)
+        new AssetProxy(response.asset.url.replace(/^(https?):/, ''), null, true, response.asset)
       ),
-      error => new AssetProxy(value, fileObj, false, field)
+      error => new AssetProxy(value, fileObj, false)
     );
   } else if (privateUpload) {
     throw new Error('The Private Upload option is only avaible for Asset Store Integration');
   }
 
-  return Promise.resolve(new AssetProxy(value, fileObj, uploaded, field));
+  return Promise.resolve(new AssetProxy(value, fileObj, uploaded));
 }

@@ -1,5 +1,7 @@
+import { remove, attempt, isError } from 'lodash';
+import uuid from 'uuid/v4';
+import { fileExtension } from 'Lib/pathHelper'
 import AuthenticationPage from './AuthenticationPage';
-import { fileExtension } from '../../lib/pathHelper'
 
 window.repoFiles = window.repoFiles || {};
 
@@ -12,28 +14,26 @@ function getFile(path) {
   return obj || {};
 }
 
-function nameFromEmail(email) {
-  return email
-    .split('@').shift().replace(/[.-_]/g, ' ')
-    .split(' ')
-    .filter(f => f)
-    .map(s => s.substr(0, 1).toUpperCase() + (s.substr(1) || ''))
-    .join(' ');
-}
-
 export default class TestRepo {
   constructor(config) {
     this.config = config;
+    this.assets = [];
   }
-
-  setUser() {}
 
   authComponent() {
     return AuthenticationPage;
   }
 
-  authenticate(state) {
-    return Promise.resolve({ email: state.email, name: nameFromEmail(state.email) });
+  restoreUser(user) {
+    return this.authenticate(user);
+  }
+
+  authenticate() {
+    return Promise.resolve();
+  }
+
+  logout() {
+    return null;
   }
 
   getToken() {
@@ -93,10 +93,32 @@ export default class TestRepo {
     return Promise.resolve();
   }
 
-  deleteEntry(path, commitMessage) {
-    const folder = path.substring(0, path.lastIndexOf('/'));
-    const fileName = path.substring(path.lastIndexOf('/') + 1);
-    window.repoFiles[folder][fileName] = undefined;
+  getMedia() {
+    return Promise.resolve(this.assets);
+  }
+
+  persistMedia({ fileObj }) {
+    const { name, size } = fileObj;
+    const objectUrl = attempt(window.URL.createObjectURL, fileObj);
+    const url = isError(objectUrl) ? '' : objectUrl;
+    const normalizedAsset = { id: uuid(), name, size, path: url, url };
+
+    this.assets.push(normalizedAsset);
+    return Promise.resolve(normalizedAsset);
+  }
+
+  deleteFile(path, commitMessage) {
+    const assetIndex = this.assets.findIndex(asset => asset.path === path);
+    if (assetIndex > -1) {
+      this.assets.splice(assetIndex, 1);
+    }
+
+    else {
+      const folder = path.substring(0, path.lastIndexOf('/'));
+      const fileName = path.substring(path.lastIndexOf('/') + 1);
+      delete window.repoFiles[folder][fileName];
+    }
+
     return Promise.resolve();
   }
 }

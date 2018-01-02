@@ -1,41 +1,67 @@
-import YAML from './yaml';
-import JSONFormatter from './json';
-import Frontmatter from './frontmatter';
+import yamlFormatter from './yaml';
+import tomlFormatter from './toml';
+import jsonFormatter from './json';
+import FrontmatterFormatter from './frontmatter';
 
-const yamlFormatter = new YAML();
-const jsonFormatter = new JSONFormatter();
-const FrontmatterFormatter = new Frontmatter();
+export const supportedFormats = [
+  'yml',
+  'yaml',
+  'toml',
+  'json',
+  'frontmatter',
+];
 
-function formatByType(type) {
-  // Right now the only type is "editorialWorkflow" and
-  // we always returns the same format
-  return FrontmatterFormatter;
-}
+export const formatToExtension = format => ({
+  yml: 'yml',
+  yaml: 'yml',
+  toml: 'toml',
+  json: 'json',
+  frontmatter: 'md',
+}[format]);
 
 export function formatByExtension(extension) {
   return {
     yml: yamlFormatter,
+    yaml: yamlFormatter,
+    toml: tomlFormatter,
     json: jsonFormatter,
     md: FrontmatterFormatter,
     markdown: FrontmatterFormatter,
     html: FrontmatterFormatter,
-  }[extension] || FrontmatterFormatter;
+  }[extension];
 }
 
 function formatByName(name) {
   return {
+    yml: yamlFormatter,
     yaml: yamlFormatter,
+    toml: tomlFormatter,
+    json: jsonFormatter,
     frontmatter: FrontmatterFormatter,
-  }[name] || FrontmatterFormatter;
+  }[name];
 }
 
 export function resolveFormat(collectionOrEntity, entry) {
-  if (typeof collectionOrEntity === 'string') {
-    return formatByType(collectionOrEntity);
+  // If the format is specified in the collection, use that format.
+  const format = collectionOrEntity.get('format');
+  if (format) {
+    return formatByName(format);
   }
-  const path = entry && entry.path;
-  if (path) {
-    return formatByExtension(path.split('.').pop());
+
+  // If a file already exists, infer the format from its file extension.
+  const filePath = entry && entry.path;
+  if (filePath) {
+    const fileExtension = filePath.split('.').pop();
+    return formatByExtension(fileExtension);
   }
-  return formatByName(collectionOrEntity.get('format'));
+
+  // If creating a new file, and an `extension` is specified in the
+  //   collection config, infer the format from that extension.
+  const extension = collectionOrEntity.get('extension');
+  if (extension) {
+    return formatByExtension(extension);
+  }
+
+  // If no format is specified and it cannot be inferred, return the default.
+  return formatByName('frontmatter');
 }

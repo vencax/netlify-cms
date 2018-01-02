@@ -1,12 +1,12 @@
 import auth from './auth';
 import config from './config';
-import editor from './editor';
 import integrations, * as fromIntegrations from './integrations';
 import entries, * as fromEntries from './entries';
 import editorialWorkflow, * as fromEditorialWorkflow from './editorialWorkflow';
 import entryDraft from './entryDraft';
 import collections from './collections';
 import search from './search';
+import mediaLibrary from './mediaLibrary';
 import medias, * as fromMedias from './medias';
 import globalUI from './globalUI';
 
@@ -16,10 +16,10 @@ const reducers = {
   collections,
   search,
   integrations,
-  editor,
   entries,
   editorialWorkflow,
   entryDraft,
+  mediaLibrary,
   medias,
   globalUI,
 };

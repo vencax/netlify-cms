@@ -7,7 +7,7 @@ const i18nFolder = path.join(__dirname, 'src/i18n');
 const keys = i18n.extractFromFiles([
   'src/**/*.js',
 ], {
-  marker: 'polyglot.t',
+  marker: 'i18n.t',
 });
 
 function mergeMissing(translations, missing, makeVal) {
@@ -40,10 +40,11 @@ if (enMissing.length > 0) {
 const errors = []
 
 fs.readdirSync(i18nFolder).forEach(file => {
-  if (file === enFile) {
+  if (file === enFile || file === 'index.js') {
     return
   }
   const filePath = path.join(i18nFolder, file);
+  console.log(filePath);
   const translations = JSON.parse(fs.readFileSync(filePath));
 
   const missing = i18n.findMissing(translations, keys);

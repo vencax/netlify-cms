@@ -1,8 +1,12 @@
-import { currentBackend } from '../backends/backend';
+import { actions as notifActions } from 'redux-notifications';
+import { currentBackend } from 'Backends/backend';
+
+const { notifSend } = notifActions;
 
 export const AUTH_REQUEST = 'AUTH_REQUEST';
 export const AUTH_SUCCESS = 'AUTH_SUCCESS';
 export const AUTH_FAILURE = 'AUTH_FAILURE';
+export const AUTH_REQUEST_DONE = 'AUTH_REQUEST_DONE';
 export const LOGOUT = 'LOGOUT';
 
 export function authenticating() {
@@ -26,6 +30,12 @@ export function authError(error) {
   };
 }
 
+export function doneAuthenticating() {
+  return {
+    type: AUTH_REQUEST_DONE,
+  };
+}
+
 export function logout() {
   return {
     type: LOGOUT,
@@ -40,7 +50,11 @@ export function authenticateUser() {
     dispatch(authenticating());
     return backend.currentUser()
       .then((user) => {
-        if (user) dispatch(authenticate(user));
+        if (user) {
+          dispatch(authenticate(user));
+        } else {
+          dispatch(doneAuthenticating());
+        }
       })
       .catch((error) => {
         dispatch(authError(error));
@@ -60,6 +74,11 @@ export function loginUser(credentials) {
         dispatch(authenticate(user));
       })
       .catch((error) => {
+        dispatch(notifSend({
+          message: `${ error.message }`,
+          kind: 'warning',
+          dismissAfter: 8000,
+        }));
         dispatch(authError(error));
       });
   };
@@ -69,7 +88,8 @@ export function logoutUser() {
   return (dispatch, getState) => {
     const state = getState();
     const backend = currentBackend(state.config);
-    backend.logout();
-    dispatch(logout());
+    Promise.resolve(backend.logout()).then(() => {
+      dispatch(logout());
+    });
   };
 }

@@ -1,7 +1,8 @@
+import trimStart from 'lodash/trimStart';
 import semaphore from "semaphore";
+import { fileExtension } from 'Lib/pathHelper'
 import AuthenticationPage from "./AuthenticationPage";
 import API from "./API";
-import { fileExtension } from '../../lib/pathHelper'
 
 const MAX_CONCURRENT_DOWNLOADS = 10;
 
@@ -14,7 +15,8 @@ export default class GitHub {
     }
 
     this.repo = config.getIn(["backend", "repo"], "");
-    this.branch = config.getIn(["backend", "branch"], "master");
+    this.branch = config.getIn(["backend", "branch"], "master").trim();
+    this.api_root = config.getIn(["backend", "api_root"], "https://api.github.com");
     this.token = '';
   }
 
@@ -22,18 +24,27 @@ export default class GitHub {
     return AuthenticationPage;
   }
 
-  setUser(user) {
-    this.token = user.token;
-    this.api = new API({ token: this.token, branch: this.branch, repo: this.repo });
+  restoreUser(user) {
+    return this.authenticate(user);
   }
 
   authenticate(state) {
     this.token = state.token;
-    this.api = new API({ token: this.token, branch: this.branch, repo: this.repo });
-    return this.api.user().then((user) => {
-      user.token = state.token;
-      return user;
-    });
+    this.api = new API({ token: this.token, branch: this.branch, repo: this.repo, api_root: this.api_root });
+    return this.api.user().then(user =>
+      this.api.hasWriteAccess().then((isCollab) => {
+        // Unauthorized user
+        if (!isCollab) throw new Error("Your GitHub user account does not have access to this repo.");
+        // Authorized user
+        user.token = state.token;
+        return user;
+      })
+    );
+  }
+
+  logout() {
+    this.token = null;
+    return;
   }
 
   getToken() {
@@ -79,8 +90,55 @@ export default class GitHub {
     }));
   }
 
+  getMedia() {
+    return this.api.listFiles(this.config.get('media_folder'))
+      .then(files => files.filter(file => file.type === 'file'))
+      .then(files => files.map(({ sha, name, size, download_url, path }) => {
+        return { id: sha, name, size, url: download_url, path };
+      }));
+  }
+
   persistEntry(entry, mediaFiles = [], options = {}) {
     return this.api.persistFiles(entry, mediaFiles, options);
+  }
+
+  /**
+   * Pulls repo info from a `repos` response url property.
+   *
+   * Turns this:
+   * '<api_root>/repo/<username>/<repo>/...'
+   *
+   * Into this:
+   * '<username>/<repo>'
+   */
+  getRepoFromResponseUrl(url) {
+    return url
+
+      // -> '/repo/<username>/<repo>/...'
+      .slice(this.api_root.length)
+
+      // -> [ '', 'repo', '<username>', '<repo>', ... ]
+      .split('/')
+
+      // -> [ '<username>', '<repo>' ]
+      .slice(2, 4)
+
+      // -> '<username>/<repo>'
+      .join('/');
+  }
+
+  async persistMedia(mediaFile, options = {}) {
+    try {
+      const response = await this.api.persistFiles(null, [mediaFile], options);
+      const repo = this.repo || this.getRepoFromResponseUrl(response.url);
+      const { value, size, path, fileObj } = mediaFile;
+      const url = `https://raw.githubusercontent.com/${repo}/${this.branch}${path}`;
+      return { id: response.sha, name: value, size: fileObj.size, url, path: trimStart(path, '/') };
+    }
+    catch(error) {
+      console.error(error);
+      throw error;
+    }
   }
 
   deleteFile(path, commitMessage, options) {

@@ -1,8 +1,6 @@
-import Frontmatter from '../frontmatter';
+import FrontmatterFormatter from '../frontmatter';
 
 jest.mock("../../valueObjects/AssetProxy.js");
-
-const FrontmatterFormatter = new Frontmatter();
 
 describe('Frontmatter', () => {
   it('should parse YAML with --- delimiters', () => {
@@ -101,6 +99,23 @@ describe('Frontmatter', () => {
         '---',
         'Some content',
         'On another line\n',
+      ].join('\n')
+    );
+  });
+
+  it('should stringify YAML with missing body', () => {
+    expect(
+      FrontmatterFormatter.toFile({ tags: ['front matter', 'yaml'], title: 'YAML' })
+    ).toEqual(
+      [
+        '---',
+        'tags:',
+        '  - front matter',
+        '  - yaml',
+        'title: YAML',
+        '---',
+        '',
+        '',
       ].join('\n')
     );
   });

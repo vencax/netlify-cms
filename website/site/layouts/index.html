@@ -1,0 +1,72 @@
+{{ partial "header" . }}
+
+<div class="landing page">
+  <section class="landing hero">
+    <div class="contained">
+
+      <div class="hero-copy">
+        <h1 class="headline">{{ .Site.Data.landing.hero.headline | markdownify }}</h1>
+        <span class="subhead">{{ .Site.Data.landing.hero.subhead | markdownify }}</span>
+      </div>
+      <div class="hero-features">
+        {{ range $index, $id := .Site.Data.landing.hero.devfeatures }}
+          <div class="feature">
+            <h3>{{ .feature | markdownify }}</h3>
+            <p>{{ .description | markdownify }}</p>
+          </div>
+        {{ end }}
+      </div>
+      <div class="hero-graphic">
+        <img src="/img/screenshot-editor.png" class="responsive"/>
+      </div>
+
+    </div>
+  </section>
+
+  <section class="cta">
+    <div class="cta-primary">
+      <p><span class="hook">{{ .Site.Data.landing.cta.primaryhook | markdownify }}</span>&nbsp;{{ .Site.Data.landing.cta.primary | markdownify }}</p>{{ .Site.Data.landing.cta.button | markdownify }}
+    </div>
+  </section>
+
+  <section class="editors">
+    <div class="contained">
+      <h2>{{ .Site.Data.landing.editors.hook | markdownify }}</h2>
+      <p id="editor-intro">{{ .Site.Data.landing.editors.intro | markdownify }}</p>
+      <div class="editors-features">
+        {{ range $index, $id := .Site.Data.landing.editors.features }}
+        <div class="feature">
+          <img src="{{ .imgpath }}" >
+          <h3>{{ .feature | markdownify }}</h3>
+          <p>{{ .description | markdownify }}</p>
+        </div>
+        {{ end }}
+      </div>
+    </div>
+  </section>
+
+  <section class="communitysupport">
+    <div class="contained">
+      <h2>{{ .Site.Data.landing.community.hook | markdownify }}</h2>
+      <div class="community-features">
+        {{ range $index, $id := .Site.Data.landing.community.features }}
+        <div class="feature">
+          <h3>{{ .feature | markdownify }}</h3>
+          <p>{{ .description | markdownify }}</p>
+        </div>
+        {{ end }}
+      </div>
+      <div class="contributors feature">
+        <h3>{{ .Site.Data.landing.community.contributors | markdownify }}</h3>
+        {{ range .Site.Data.contributors }}
+          <div class="contributor-list">
+            {{ range . }}
+              <a href="{{.profile}}" title="{{.name}}"><img src="{{.avatar_url}}" alt="{{.login}}" /></a>
+            {{ end }}
+          </div>
+        {{ end }}
+      </div>
+    </div>
+  </section>
+
+{{ partial "footer" . }}

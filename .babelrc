@@ -1,11 +1,46 @@
 {
-  "presets": [["es2015", { "modules": false }], "stage-1", "react"],
+  "presets": [
+    ["env", {
+      "modules": false
+    }],
+    "stage-1",
+    "react"
+  ],
   "plugins": [
-    "react-hot-loader/babel",
     "lodash",
     ["babel-plugin-transform-builtin-extend", {
       "globals": ["Error"]
     }],
+    ["transform-runtime", {
+      "useBuiltIns": true,
+      "useESModules": true
+    }],
+    ["module-resolver", {
+      /**
+       * Use aliases to avoid relative path import hell.
+       */
+      "root": [
+        /**
+         * Components
+         */
+        "./src/components"
+      ],
+      "alias": {
+        /**
+         * Top level src directories
+         */
+        "Actions": "./src/actions/",
+        "Backends": "./src/backends/",
+        "Constants": "./src/constants/",
+        "Formats": "./src/formats/",
+        "Integrations": "./src/integrations/",
+        "Lib": "./src/lib/",
+        "Reducers": "./src/reducers/",
+        "Redux": "./src/redux/",
+        "Routing": "./src/routing/",
+        "ValueObjects": "./src/valueObjects/",
+      }
+    }]
   ],
   "env": {
     "test": {
