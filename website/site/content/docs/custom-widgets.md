@@ -4,7 +4,7 @@ position: 35
 ---
 # Custom Widgets
 
-The NetlifyCMS exposes an `window.CMS` global object that you can use to register custom widgets, previews, and editor plugins. The available widget extension methods are:
+The NetlifyCMS exposes a `window.CMS` global object that you can use to register custom widgets, previews, and editor plugins. The same object is also the default export if you import Netify CMS as an npm module. The available widget extension methods are:
 
 * **registerWidget:** lets you register a custom widget.
 * **registerEditorComponent:** lets you add a block component to the Markdown editor.
@@ -20,7 +20,7 @@ However, although possible, it may be cumbersome or even impractical to add a Re
 Register a custom widget.
 
 ```js
-CMS.registerWidget(name, control, \[preview\])
+// Using global window objectCMS.registerWidget(name, control, [preview])// Using npm module importimport CMS from 'netlify-cms'CMS.registerWidget(name, control, [preview])
 ```
 
 **Params:**
@@ -92,7 +92,7 @@ CMS.registerEditorComponent({
   // Fields the user need to fill out when adding an instance of the component
   fields: [{name: 'id', label: 'Youtube Video ID', widget: 'string'}],
   // Pattern to identify a block as being an instance of this component
-  pattern: /youtube (\S+)\s/,
+  pattern: /^youtube (\S+)$/,
   // Function to extract data elements from the regexp match
   fromBlock: function(match) {
     return {
@@ -116,7 +116,7 @@ CMS.registerEditorComponent({
 
 **Result:**
 
-![youtube-widget](/img/youtube-widget.png)
+![youtube-widget](/img/screen shot 2018-01-05 at 4.25.07 pm.png)
 
 ## Advanced field validation
 
